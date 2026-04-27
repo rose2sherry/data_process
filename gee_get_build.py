@@ -6,7 +6,7 @@ import os
 # ==============================================
 # 0. 授权与初始化
 # ==============================================
-PROJECT_ID = 'ee-studyuse188124'
+PROJECT_ID = 'ee-studyuse188124' ###需要改成自己的项目id!!!
 try:
     # 尝试直接使用项目 ID 初始化
     ee.Initialize(project=PROJECT_ID)
@@ -23,7 +23,7 @@ print("开始处理任务...")
 # 1. 本地路径与配置区
 # ==============================================
 # 本地 SHP 文件的完整路径
-LOCAL_SHP_PATH = r"G:\全国实验\356个有城市边界数据\杭州市.shp"
+LOCAL_SHP_PATH = r"G:\全国实验\356个有城市边界数据\杭州市.shp"  
 
 # 导出到 Google Drive 的配置
 DRIVE_FOLDER = 'gee_python'
@@ -64,7 +64,7 @@ except Exception as e:
     exit()
 
 # ==============================================
-# 3. 本地 Python 预计算相交瓦片 (物理隔绝法)
+# 3. 本地 Python 预计算相交瓦片 
 # ==============================================
 tile_paths = [
     # 北纬 50° ~ 55°
@@ -149,7 +149,7 @@ for path in tile_paths:
     parts = basename.split('_')
 
     if len(parts) == 4:
-        # 解析该瓦片自带的经纬度范围 (忽略字母 e 和 n)
+        # 解析该瓦片自带的经纬度范围
         lon1 = float(parts[0][1:])
         lat1 = float(parts[1][1:])
         lon2 = float(parts[2][1:])
@@ -177,16 +177,14 @@ for vp in valid_paths:
 # ==============================================
 print("⏳ 正在 GEE 中合并目标瓦片并进行精确筛选...")
 
-# 因为我们已经极大地缩减了瓦片数量（通常只剩 1 到 2 个），
-# 这里改用更稳定的 .merge() 来代替容易引起索引崩溃的 .flatten()
 clipped_buildings = ee.FeatureCollection(valid_paths[0])
 for i in range(1, len(valid_paths)):
     clipped_buildings = clipped_buildings.merge(ee.FeatureCollection(valid_paths[i]))
 
-# 使用真实的城市多边形边界进行最后一次精确过滤
+# 使用真实的城市多边形边界进行精确过滤
 clipped_buildings = clipped_buildings.filterBounds(roi_geometry)
 
-# 附加清洗：确保要素有高度属性，防止空边界混入
+# 确保要素有高度属性，防止空边界混入
 clipped_buildings = clipped_buildings.filter(ee.Filter.notNull(['height']))
 
 print("🚀 正在提交导出任务到 Google Drive...")
